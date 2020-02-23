@@ -1,3 +1,5 @@
+import os.path
+
 import pygame
 import pygame.locals
 
@@ -118,7 +120,7 @@ def init_simulation(screen, room):
 
     return robot_rect, arrived, robot_idx, waiting, direction
 
-def create_frame_dump(robot, room):
+def create_frame_dump(folder, robot, room):
     """Given a room and a robot, save all the frames to create a movie."""
     
     width = len(room[0])
@@ -163,7 +165,7 @@ def create_frame_dump(robot, room):
         else:
             going = False
 
-        pygame.image.save(screen, "imgbin/frame{:06}.png".format(frame))
+        pygame.image.save(screen, os.path.join(folder, "frame{:06}.png".format(frame)))
         frame += 1
 
 def render_whole_simulation(robots, rooms):

@@ -109,4 +109,6 @@ if __name__ == "__main__":
             chosen.append(generate_robot(ROBOT_LENGTH))
 
     #render_whole_simulation(top_robots, rooms)
-    create_frame_dump(top_robots[-1], rooms[0])
+
+    create_frame_dump("worst_imgbin", top_robots[0], rooms[0])
+    create_frame_dump("top_imgbin", top_robots[-1], rooms[0])
