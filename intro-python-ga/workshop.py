@@ -4,14 +4,14 @@ to evolve a simple robot that cleans a room.
 """
 
 from random import choice, shuffle, randint, random
-from components import Directions, generate_room, render_whole_simulation, score_robot
+from components import Directions, generate_room, render_whole_simulation, score_robot, create_frame_dump
 
 GENERATIONS = 100
 POPULATION_SIZE = 200
 ROOMS = 10
 
-ROOM_WIDTH = 15
-ROOM_HEIGHT = 10
+ROOM_WIDTH = 8
+ROOM_HEIGHT = 6
 ROBOT_LENGTH = ROOM_WIDTH*ROOM_HEIGHT
 
 def generate_robot(length):
@@ -108,4 +108,5 @@ if __name__ == "__main__":
         while len(pop) < POPULATION_SIZE:
             chosen.append(generate_robot(ROBOT_LENGTH))
 
-    render_whole_simulation(top_robots, rooms)
+    #render_whole_simulation(top_robots, rooms)
+    create_frame_dump(top_robots[-1], rooms[0])
