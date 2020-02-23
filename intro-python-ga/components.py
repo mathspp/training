@@ -38,8 +38,8 @@ def score_robot(robot, room):
     for dx, dy in robot:
         score += room_copy[posy][posx]
         room_copy[posy][posx] = 0
-        posx = (posx + dx) % width
-        posy = (posy + dy) % height
+        posx = max(min(posx + dx, width - 1), 0)
+        posy = max(min(posy + dy, height - 1), 0)
     score += room_copy[posy][posx]
     room_copy[posy][posx] = 0
 
@@ -153,8 +153,10 @@ def create_frame_dump(folder, robot, room):
             else:
                 draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
 
-                robot_rect.left = (robot_rect.left + VELOCITY*direction[0]) % WIDTH
-                robot_rect.top = (robot_rect.top + VELOCITY*direction[1]) % HEIGHT
+                robot_rect.left = max(robot_rect.left + VELOCITY*direction[0], 0)
+                robot_rect.right = min(robot_rect.right, WIDTH)
+                robot_rect.top = max(robot_rect.top + VELOCITY*direction[1], 0)
+                robot_rect.bottom = min(robot_rect.bottom, HEIGHT)
 
                 if (robot_rect.left % SQUARESIZE == 0) and (robot_rect.top % SQUARESIZE == 0):
                     arrived = True
@@ -234,8 +236,10 @@ def render_whole_simulation(robots, rooms):
             else:
                 draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
 
-                robot_rect.left = (robot_rect.left + VELOCITY*direction[0]) % WIDTH
-                robot_rect.top = (robot_rect.top + VELOCITY*direction[1]) % HEIGHT
+                robot_rect.left = max(robot_rect.left + VELOCITY*direction[0], 0)
+                robot_rect.right = min(robot_rect.right, WIDTH)
+                robot_rect.top = max(robot_rect.top + VELOCITY*direction[1], 0)
+                robot_rect.bottom = min(robot_rect.bottom, HEIGHT)
 
                 if (robot_rect.left % SQUARESIZE == 0) and (robot_rect.top % SQUARESIZE == 0):
                     arrived = True

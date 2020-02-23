@@ -7,7 +7,7 @@ from random import choice, shuffle, randint, random
 from components import Directions, generate_room, render_whole_simulation, score_robot, create_frame_dump
 
 GENERATIONS = 100
-POPULATION_SIZE = 200
+POPULATION_SIZE = 300
 ROOMS = 10
 
 ROOM_WIDTH = 8
