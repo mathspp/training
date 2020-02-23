@@ -118,6 +118,54 @@ def init_simulation(screen, room):
 
     return robot_rect, arrived, robot_idx, waiting, direction
 
+def create_frame_dump(robot, room):
+    """Given a room and a robot, save all the frames to create a movie."""
+    
+    width = len(room[0])
+    height = len(room)
+
+    WIDTH = SQUARESIZE * width
+    HEIGHT = SQUARESIZE * height
+    screen = pygame.Surface((WIDTH, HEIGHT))
+
+    clock = pygame.time.Clock()
+
+    robot_rect, arrived, robot_idx, _, direction = init_simulation(screen, room)
+
+    going = True
+    paused = False
+    frame = 0
+    while going:
+        clock.tick(FPS)
+
+        for ev in pygame.event.get():
+            if ev.type == pygame.locals.QUIT:
+                going = False
+
+        # Only try moving the robot while there are movements to consider
+        if robot_idx < len(robot) and not paused:
+            if arrived:
+                direction = robot[robot_idx]
+                arrived = False
+
+            else:
+                draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
+
+                robot_rect.left = (robot_rect.left + VELOCITY*direction[0]) % WIDTH
+                robot_rect.top = (robot_rect.top + VELOCITY*direction[1]) % HEIGHT
+
+                if (robot_rect.left % SQUARESIZE == 0) and (robot_rect.top % SQUARESIZE == 0):
+                    arrived = True
+                    robot_idx += 1
+                    print("Move: {:3}".format(robot_idx))
+
+                draw_nice_rect(screen, WIDTH, HEIGHT, ROBOT_COLOUR, robot_rect)
+        else:
+            going = False
+
+        pygame.image.save(screen, "imgbin/frame{:06}.png".format(frame))
+        frame += 1
+
 def render_whole_simulation(robots, rooms):
     """Use pygame to render the robot cleaning a given room."""
 
@@ -180,16 +228,6 @@ def render_whole_simulation(robots, rooms):
             elif arrived:
                 direction = robot[robot_idx]
                 arrived = False
-
-                if direction[0] == -1:
-                    dir_name = "left"
-                elif direction[0] == 1:
-                    dir_name = "right"
-                elif direction[1] == -1:
-                    dir_name = "up"
-                elif direction[1] == 1:
-                    dir_name = "down"
-                #pygame.display.set_caption("Movement {} going {}".format(robot_idx, dir_name))
 
             else:
                 draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
