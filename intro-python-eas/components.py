@@ -3,7 +3,7 @@ import pygame.locals
 
 pygame.display.init()
 
-from random import random, choice
+from random import random
 
 class Directions(object):
     """Hold the directions in which the robot can walk."""
@@ -41,12 +41,12 @@ def score_robot(robot, room):
     score += room_copy[posy][posx]
     room_copy[posy][posx] = 0
 
-    return score, room_copy
+    return score
 
 # pygame-related global variables
 FPS = 60
 SQUARESIZE = 40
-VELOCITY = 2
+VELOCITY = 8
 WAITING = 3
 ROBOT_COLOUR = (230, 230, 0)
 WHITE = (255, 255, 255)
@@ -101,8 +101,31 @@ def draw_nice_rect(screen, width, height, colour, rect):
     for rect in parts:
         pygame.draw.rect(screen, colour, rect)
 
-def render_simulation(robot, room):
+def init_simulation(screen, room):
+    width = len(room[0])
+    height = len(room)
+
+    robot_left = (width // 2) * SQUARESIZE
+    robot_top = (height // 2) * SQUARESIZE
+    robot_rect = pygame.Rect(robot_left, robot_top, SQUARESIZE, SQUARESIZE)
+
+    draw_room(screen, room)
+
+    arrived = True # flags if the robot arrived at a square
+    robot_idx = 0
+    waiting = 0 # number of frames paused between directions
+    direction = None # the direction we are moving in
+
+    return robot_rect, arrived, robot_idx, waiting, direction
+
+def render_whole_simulation(robots, rooms):
     """Use pygame to render the robot cleaning a given room."""
+
+    robot_from_gen = 0
+    room_idx = 0
+
+    robot = robots[robot_from_gen]
+    room = rooms[room_idx]
 
     width = len(room[0])
     height = len(room)
@@ -110,18 +133,11 @@ def render_simulation(robot, room):
     WIDTH = SQUARESIZE * width
     HEIGHT = SQUARESIZE * height
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    draw_room(screen, room)
+    pygame.display.set_caption("Robot from gen {}, room {}".format(robot_from_gen, room_idx))
 
     clock = pygame.time.Clock()
 
-    robot_left = (width // 2) * SQUARESIZE
-    robot_top = (height // 2) * SQUARESIZE
-    robot_rect = pygame.Rect(robot_left, robot_top, SQUARESIZE, SQUARESIZE)
-
-    arrived = True # flags if the robot arrived at a square
-    robot_idx = 0
-    waiting = 0 # number of frames paused between directions
-    direction = None # the direction we are moving in
+    robot_rect, arrived, robot_idx, waiting, direction = init_simulation(screen, room)
 
     going = True
     paused = False
@@ -134,6 +150,27 @@ def render_simulation(robot, room):
             elif ev.type == pygame.locals.KEYDOWN:
                 if ev.key == pygame.locals.K_p or ev.key == pygame.locals.K_SPACE:
                     paused = not paused
+
+                elif ev.key == pygame.locals.K_UP:
+                    robot_from_gen = (robot_from_gen - 1) % len(robots)
+                    robot = robots[robot_from_gen]
+                    robot_rect, arrived, robot_idx, waiting, direction = init_simulation(screen, room)
+                    pygame.display.set_caption("Robot from gen {}, room {}".format(robot_from_gen, room_idx))
+                elif ev.key == pygame.locals.K_DOWN:
+                    robot_from_gen = (robot_from_gen + 1) % len(robots)
+                    robot = robots[robot_from_gen]
+                    robot_rect, arrived, robot_idx, waiting, direction = init_simulation(screen, room)
+                    pygame.display.set_caption("Robot from gen {}, room {}".format(robot_from_gen, room_idx))
+                elif ev.key == pygame.locals.K_LEFT:
+                    room_idx = (room_idx - 1) % len(rooms)
+                    room = rooms[room_idx]
+                    robot_rect, arrived, robot_idx, waiting, direction = init_simulation(screen, room)
+                    pygame.display.set_caption("Robot from gen {}, room {}".format(robot_from_gen, room_idx))
+                elif ev.key == pygame.locals.K_RIGHT:
+                    room_idx = (room_idx + 1) % len(rooms)
+                    room = rooms[room_idx]
+                    robot_rect, arrived, robot_idx, waiting, direction = init_simulation(screen, room)
+                    pygame.display.set_caption("Robot from gen {}, room {}".format(robot_from_gen, room_idx))
 
         # Only try moving the robot while there are movements to consider
         if robot_idx < len(robot) and not paused:
@@ -152,7 +189,7 @@ def render_simulation(robot, room):
                     dir_name = "up"
                 elif direction[1] == 1:
                     dir_name = "down"
-                pygame.display.set_caption("Movement {} going {}".format(robot_idx, dir_name))
+                #pygame.display.set_caption("Movement {} going {}".format(robot_idx, dir_name))
 
             else:
                 draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
