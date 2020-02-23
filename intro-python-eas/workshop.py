@@ -64,6 +64,8 @@ def crossover_reproduction(parents):
     return offspring
 
 def mutate(offspring, rate):
+    """Mutate each gene with probability given by the rate."""
+    
     dirs = [Directions.LEFT, Directions.RIGHT, Directions.UP, Directions.DOWN]
 
     for child in offspring:
