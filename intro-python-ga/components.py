@@ -23,8 +23,7 @@ def score_robot(robot, room):
     """Given a room and a cleaning robot, score the cleaning of the robot.
     
     The robot is a list of Directions.
-    The room is a 2D array with dimensions height x width. The room is seen
-        as a torus, meaning walking off the edge wraps around.
+    The room is a 2D array with dimensions height x width.
     """
     
     score = 0
@@ -64,44 +63,6 @@ def draw_room(screen, room):
             # the level of dirtiness shows in different shades of gray
             gray = [int((1 - value) * 255)] * 3
             pygame.draw.rect(screen, gray, rect)
-
-def draw_nice_rect(screen, width, height, colour, rect):
-    """Draws a rectangle nicely in the screen with the given dimensions.
-
-    If needed, wrap the drawing around the screen.
-    """
-
-    top_bot_parts = []
-
-    # Check if we need to split the rectange horizontally
-    if rect.bottom > height:
-        top_bot_parts.append(
-            pygame.Rect(rect.left, rect.top, rect.width, height - rect.top)
-        )
-        top_bot_parts.append(
-            pygame.Rect(rect.left, 0, rect.width, rect.height + rect.top - height)
-        )
-    else:
-        top_bot_parts.append(
-            pygame.Rect(rect.left, rect.top, rect.width, rect.height)
-        )
-
-    parts = []
-    for rect in top_bot_parts:
-        if rect.right > width:
-            parts.append(
-                pygame.Rect(rect.left, rect.top, width - rect.left, rect.height)
-            )
-            parts.append(
-                pygame.Rect(rect.left, rect.top, rect.width + rect.left - width, rect.height)
-            )
-        else:
-            parts.append(
-                rect
-            )
-
-    for rect in parts:
-        pygame.draw.rect(screen, colour, rect)
 
 def init_simulation(screen, room):
     width = len(room[0])
@@ -151,7 +112,7 @@ def create_frame_dump(folder, robot, room):
                 arrived = False
 
             else:
-                draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
+                pygame.draw.rect(screen, WHITE, robot_rect)
 
                 robot_rect.left = max(robot_rect.left + VELOCITY*direction[0], 0)
                 robot_rect.right = min(robot_rect.right, WIDTH)
@@ -163,7 +124,7 @@ def create_frame_dump(folder, robot, room):
                     robot_idx += 1
                     print("Move: {:3}".format(robot_idx))
 
-                draw_nice_rect(screen, WIDTH, HEIGHT, ROBOT_COLOUR, robot_rect)
+                pygame.draw.rect(screen, ROBOT_COLOUR, robot_rect)
         else:
             going = False
 
@@ -234,7 +195,7 @@ def render_whole_simulation(robots, rooms):
                 arrived = False
 
             else:
-                draw_nice_rect(screen, WIDTH, HEIGHT, WHITE, robot_rect)
+                pygame.draw.rect(screen, WHITE, robot_rect)
 
                 robot_rect.left = max(robot_rect.left + VELOCITY*direction[0], 0)
                 robot_rect.right = min(robot_rect.right, WIDTH)
@@ -246,6 +207,6 @@ def render_whole_simulation(robots, rooms):
                     waiting = WAITING
                     robot_idx += 1
 
-                draw_nice_rect(screen, WIDTH, HEIGHT, ROBOT_COLOUR, robot_rect)
+                pygame.draw.rect(screen, ROBOT_COLOUR, robot_rect)
 
         pygame.display.flip()

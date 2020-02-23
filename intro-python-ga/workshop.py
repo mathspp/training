@@ -10,9 +10,9 @@ GENERATIONS = 100
 POPULATION_SIZE = 300
 ROOMS = 10
 
-ROOM_WIDTH = 8
-ROOM_HEIGHT = 6
-ROBOT_LENGTH = ROOM_WIDTH*ROOM_HEIGHT
+ROOM_WIDTH = 14
+ROOM_HEIGHT = 8
+ROBOT_LENGTH = ROOM_WIDTH*ROOM_HEIGHT + 10
 
 def generate_robot(length):
     """Generate a random robot with the given length."""
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         while len(pop) < POPULATION_SIZE:
             chosen.append(generate_robot(ROBOT_LENGTH))
 
-    #render_whole_simulation(top_robots, rooms)
+    render_whole_simulation(top_robots, rooms)
 
     create_frame_dump("worst_imgbin", top_robots[0], rooms[0])
     create_frame_dump("top_imgbin", top_robots[-1], rooms[0])
