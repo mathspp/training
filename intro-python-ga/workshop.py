@@ -17,7 +17,7 @@ ROBOT_LENGTH = ROOM_WIDTH*ROOM_HEIGHT + 10
 def generate_robot(length):
     """Generate a random robot with the given length."""
 
-    dirs = [Directions.LEFT, Directions.RIGHT, Directions.UP, Directions.DOWN]
+    dirs = [Directions.LEFT, Directions.RIGHT, Directions.UP, Directions.DOWN, Directions.STILL]
     robot = [choice(dirs) for _ in range(length)]
     return robot
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         
         scored_robots = sorted(zip(scores, pop), reverse = True)
 
-        print("Generation {:3} - {}".format(gen, round(100*scored_robots[0][0]/max_score, 2)))
+        print("Generation {:3} - {:5} - ({:02})".format(gen, round(100*scored_robots[0][0]/max_score, 2), scored_robots[0][1].count(Directions.STILL)))
         
         top_robot = scored_robots[0][1][::]
         top_robots.append(top_robot)

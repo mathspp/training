@@ -14,6 +14,7 @@ class Directions(object):
     RIGHT = [1, 0]
     UP = [0, -1]
     DOWN = [0, 1]
+    STILL = [0, 0]
 
 def generate_room(width, height):
     """Generate a 2D array of dimensions height x width with random values."""
@@ -65,6 +66,7 @@ def draw_room(screen, room):
             pygame.draw.rect(screen, gray, rect)
 
 def init_simulation(screen, room):
+    """Helper method used by the rendering functions."""
     width = len(room[0])
     height = len(room)
 
