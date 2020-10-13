@@ -1,0 +1,258 @@
+⍝ This file is licensed under a CC BY-NC-SA 4.0 International license, whose terms you can read at https://creativecommons.org/licenses/by-nc-sa/4.0/
+⍝ This file is a modified version of the original owned by Dyalog Ltd.
+
+⍝ The modifications in this file include the refactoring of this namespace,
+⍝⍝ the reimplementation of some of the functions below and the code comments.
+
+:Namespace NeuralNets
+    
+    ⍝ Monadic dfn to compute square roots.                     
+    sqrt ← {⍵*÷2}
+    
+    MakeNormalArray ← {
+        ⍝ Return an array of normally distributed values with shape ⍵,
+        ⍝ use the Box-Muller transform to start with uniformly distributed values.
+        ⍝ cf. https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+        
+        ⍝ We start by building U1 and U2 as per the Wikipedia link;
+        ⍝ using monadic ? to generate random values in [0, 1]
+        U1 ← ?⍵⍴0 ⋄ U2 ← ?⍵⍴0
+        ⍝ We use ⍟ to get the log of U1
+        F1 ← sqrt¯2×⍟U1
+        ⍝ We use (2○) as the cosine function and ○U2 does (pi × U2)
+        F2 ← 2○2×○U2
+        F1×F2           
+    }
+    
+    InitBiases ← {
+        ⍝ Monadic function taking the shape of the network as ⍵.
+        ⍝ Returns a vector of bias vectors as columns.
+        
+        ⍝ We can drop the first value because we don't need a bias vector for that.
+        w ← 1↓⍵
+        ⍝ We go over each value and make a normal vector of that size, which we then
+        ⍝⍝ turn into a column with ⍪.
+        ⍝ Finally we divide each vector by the corresponding length (which is in w).
+        ⍝⍝ We use ÷⍨ because we want to divide the right arg with the left arg.
+        w ÷⍨ ⍪∘MakeNormalArray¨ w
+    }
+    
+    InitMatrices ← {
+        ⍝ Monadic function taking the shape of the network as ⍵.
+        ⍝ Returns a vector of weight matrices.
+        
+        ⍝ 2 ,/ ⍵ builds pairs of consecutive items in ⍵.
+        ⍝ 2 MakeNormalArray⍤,/ ⍵ builds matrices with shapes given by pairs.
+        ⍝ 2 ⍉∘.../ ⍵ then transposes such matrices.
+        mats ← 2 ⍉∘MakeNormalArray⍤,/ ⍵
+        ⍝ 2 ×/ ⍵ multiplies each 2 consecutive numbers together.
+        ⍝ 2 sqrt⍤×/ ⍵ gives the square root of each such multiplication.
+        ⍝ mat ÷ ... divides each matrix by the square root of the amount of elements it has.
+        mats ÷ 2 sqrt⍤×/ ⍵
+    }
+    
+    InitLayers ← {
+        ⍝ Monadic function taking the shape of the network as ⍵.
+        ⍝ Returns a pair (Ms bs) with the matrices and the bias vectors.
+        (InitMatrices ⍵) (InitBiases ⍵)
+    }
+    
+    LeakyReLU ← {
+        ⍝ Returns the LeakyReLU of the input array ⍵ with "leaky" parameter ⍺.               
+        ⍝ cf. https://en.wikipedia.org/wiki/Rectifier_(neural_networks)#Leaky_ReLU
+        
+        ⍝ First we find the positions of positive numbers.
+        isPos ← 1=×⍵
+        ⍝ Then we build a vector equal to ⍵ but with 0s instead of negative numbers.
+        pos ← ⍵×isPos
+        ⍝ ~isPos finds the negative numbers
+        ⍝ ⍵×~isPos is a vector equal to ⍵ but with 0s instead of positive numbers.
+        ⍝ ⍺×⍵×~isPos multiplies the remaining numbers with the "leaky" parameter.
+        neg ← ⍺×⍵×~isPos
+        ⍝ Finally we sum the two.
+        pos+neg    
+    }
+    
+    dLeakyReLU ← {
+        ⍝ Returns the derivative of the LeakyReLU of the input array ⍵ with "leaky" parameter ⍺.
+        
+        ⍝ First we find the positive numbers.
+        isPos ← 1=×⍵
+        ⍝ We return a 1 for each positive number and an ⍺ for each negative one.
+        isPos+⍺×~isPos
+    }
+    
+    ⍝ (TODO) Consider rotating Ms and bs with (1⌽Ms) at each step
+    ⍝⍝ instead of dropping the first element at each step.
+    _F ← {
+        ⍝ Helper monadic op/function.
+        ⍝ Computes the forward pass if (Ms bs xs)←⍵ corresponds to the
+        ⍝ Matrices and Bias that are yet to be used to extended the vector of the outputs xs.
+        ⍝ Uses ⍺⍺ as the activation function.
+        
+        ⍝ First we unpack everything.
+        (Ms bs xs)←⍵
+        ⍝ ⊃⌽xs is the last element of xs
+        ⍝ (⊃Ms) is the first element of Ms
+        ⍝ (⊃Ms) +.× ⊃⌽xs is the matrix product of both
+        ⍝ (⊃bs) + ... sums the first element of bs
+        ⍝ ⍺⍺ ...  applies the activation function to that result
+        ⍝ ⊂...    turns the result into something I can append to the vector xs
+        ⍝ xs,←... appends the result to xs
+        xs ,← ⊂⍺⍺ (⊃bs)+(⊃Ms)+.× ⊃⌽xs
+        ⍝ Then we return everything, except we first get rid of the M and b we just used.
+        (1↓Ms) (1↓bs) (xs)
+    }
+    
+    _ForwardPass ← {
+        ⍝ Computes the forward pass of the column ⍵ in the neural network ⍺.
+        ⍝ Uses ⍺⍺ as the activation function.
+        ⍝ Returns a vector with the output of each layer.
+        
+        ⍝ First we unpack the network into matrices and biases.
+        (Ms bs) ← ⍺
+        ⍝ Ms bs (1⍴⊂⍵) gives the initial vectors for _F to work with.
+        ⍝ (⍺⍺ _F) gives ⍺⍺ as the activation function to _F.
+        ⍝ (⍺⍺ _F⍣(≢Ms)) applies (⍺⍺ _F) as many times as there are items in Ms (≢Ms)
+        ⍝ (_ _ xs) ← ignores everything but the xs
+        (_ _ xs) ← (⍺⍺ _F⍣(≢Ms)) Ms bs (1⍴⊂⍵) 
+        xs
+    }
+    
+    MSELoss ← {
+        ⍝ Dyadic function to compute the loss with target ⍺ and actual NN output ⍵.
+        ⍝ The Mean Squared Error is exactly what is says.
+        ⍝ cf. https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html#torch.nn.MSELoss
+        
+        ⍝ ⍺-⍵ finds the error.
+        ⍝ 2*⍨... squares it.
+        sqe ← ,2*⍨⍺-⍵
+        ⍝ Then we find its mean.
+        (+/sqe)÷≢sqe
+    }
+    
+    dMSELoss ← {
+        ⍝ Dyadic function to compute the derivative of the MSELoss with respect to ⍵.
+        ⍝ Careful with the mathematical subtleties of deriving MSELoss w.r.t. ⍺ or ⍵.
+        
+        ⍝ ⍺-⍵ finds the error.
+        ⍝ 2×... doubles it.
+        ⍝ (≢⍵)÷⍨... divides it by the number of elements in ⍵.
+        (≢⍵)÷⍨-2×⍺-⍵    
+    }
+    
+    _B ← {
+        ⍝ Helper monadic op/function.
+        ⍝ Computes the backpropagation if (Ms bs xs dMs dbs dxs)←⍵ contains:
+        ⍝⍝ the matrices, biases and network outputs in reverse order
+        ⍝⍝ the derivatives of the matrices, biases and xs, which are built consecutively.
+        ⍝ Uses ⍺⍺ as the derivative of the activation function.
+        
+        ⍝ First we unpack *everything*.
+        (Ms bs xs dMs dbs dxs) ← ⍵
+        ⍝ x_ is the network output at this layer BEFORE the activation function.
+        x_ ← (⊃bs)+(⊃Ms)+.×(⊃xs)
+        ⍝ This is the derivative w.r.t. the biases.
+        db ← (⊃⌽dxs)×⍺⍺ x_
+        ⍝ This is the derivative w.r.t. the output of the network.
+        dx ← (⍉⊃Ms)+.×db
+        ⍝ This is the derivative w.r.t. the matrix of weights.
+        dM ← db+.×(⍉⊃xs)
+        ⍝ Then we return everything, except
+        ⍝⍝ we get rid of the matrices, biases and outpus we used AND
+        ⍝⍝ we include the new derivatives we just computed.
+        (1↓Ms) (1↓bs) (1↓xs) (dMs,⊂dM) (dbs,⊂db) (dxs,⊂dx)
+    }
+    
+    _BP_ ← {
+        ⍝ Backpropagation algorithm.
+        ⍝⍝ (Ms bs)←⍺ is the neural network to be updated.
+        ⍝⍝ (xs t)←⍵ is the intermediate outputs of the forward pass and the target.
+        ⍝⍝ ⍺⍺ is the derivative of the activation function used in the forward pass.
+        ⍝⍝ ⍵⍵ is the derivative of the loss function.
+        
+        ⍝ First we unpack the net into matrices and biases.
+        (Ms bs) ← ⍺
+        ⍝ Then we unpack the outputs and the network target.
+        (xs t) ← ⍵
+        ⍝ Then we initialise the empty vectors of derivatives.
+        dMs ← dbs ← ⍬
+        ⍝ We compute the first derivative of the backpropagation algorithm
+        ⍝⍝ with the derivative of the loss function ⍵⍵.
+        dxs ← ⊂t ⍵⍵ ⊃⌽xs
+        ⍝ (⍺⍺ _B) feeds the derivative of the activation function to _B
+        ⍝⍝ and then we apply (⍺⍺ _B) as many times as there are elements in Ms (≢Ms).
+        ⍝⍝ The initial arguments are the network parameters and the derivative lists above.
+        r ← (⍺⍺ _B⍣(≢Ms)) (⌽Ms) (⌽bs) (1↓⌽xs) dMs dbs dxs
+        ⍝ Then we ignore pretty much everything...
+        (_ _ _ dMs dbs _) ← r                     
+        ⍝ And we return the derivatives that matter in the same order as the network.
+        (⌽dMs) (⌽dbs)    
+    }
+    
+    Display ← {
+        ⍝ Monadic function turning an image vector into a "nice" image.
+
+        ⍝ ⍵>0.5 finds the pixels with gray value above 0.5
+        ⍝ 28 28⍴... turns that into a 28 by 28 matrix.
+        ⍝ ' ⌹'[...] uses that to index into two display characters, and
+        ⍝ 2/... doubles the width of the image, to make it less skinny.
+        2/' ⌹'[28 28⍴⍵>0.5]
+    }
+    
+    ∇ net ← MNIST
+        ; c; iter ⍝ the contents of the files and the iteration counter.
+        ; net ⍝ the neural network we will build and train.
+        ; LR; leaky ⍝ the learning rate and leaky parameters.
+        ; data; img ⍝ the data vector from the file and its conversion to image vector.
+        ; t; xs; dMs; dbs ⍝ the target for this data, the actual outputs and the derivatives.                                         
+        ⍝ Niladic tradfn to train a network on the MNIST data set.
+
+        ⍝ ⎕RL←73, shape 784 10, LR ← leaky ← 0.001 gives 88.86% accuracy
+        ⍝ ⎕RL←73, shape 784 100 10, LR ← leaky ← 0.001 gives 64.05% accuracy
+        ⎕RL ← 73
+        c ← ⊃⎕nget './mnistdata/mnist_train.csv' 1
+        net ← InitLayers 784 10
+        LR ← leaky ← 0.001
+        :For iter :In ⍳≢c 
+            data ← ⍎⊃iter⌷c 
+            label ← 1↑data
+            t ← label=⍪⍳10
+            img ← 255÷⍨⍪1↓data
+            xs ← net (leaky∘LeakyReLU _ForwardPass) img
+            (dMs dbs) ← net (leaky∘dLeakyReLU _BP_ dMSELoss) xs t
+            net -← LR×dMs dbs
+            
+            :If 0=1000|iter
+                ⎕← Display img
+                ⎕← 'guess is ', ⍕ ⊃⍸(⊢=⌈/), ⊃⌽xs
+                ⎕← 'loss is ', ⊂t MSELoss ⊃⌽xs
+                ⎕← 'iter is ', ⍕iter 
+            :EndIf
+        :EndFor    
+        AssessMNIST net
+    ∇
+    
+    ∇ AssessMNIST 
+        ; c; data; img ⍝ the file contents, a line of the file and the image vector.
+        ; net; leaky   ⍝ the neural network and the leaky parameter used.
+        ; label; out; outl ⍝ the correct output for img, the output vector of the net and the output label of the network.
+        ; hits ⍝ a pair (wrong right) with the performance of the network.
+        ⍝ Niladic tradfn to test a network on the MNSIT data set.
+
+        c ← ⊃⎕nget './mnistdata/mnist_test.csv' 1
+        hits ← 0 0
+        leaky ← 0.001
+        :For data :In c   
+            label ← 1↑data
+            img ← 255÷⍨⍪1↓data
+            out ← ⊃⌽ net (leaky∘LeakyReLU _ForwardPass) img
+            outl ← ⊃⍸(⊢=⌈/),out
+            hits +← (outl=label)⌽1 0
+        :EndFor
+        ⎕← 'Result is:'
+        ⎕← hits
+    ∇
+    
+:EndNamespace
+
