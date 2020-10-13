@@ -230,28 +230,51 @@
                 ⎕← 'iter is ', ⍕iter 
             :EndIf
         :EndFor    
-        AssessMNIST net
+        ⍝AssessMNIST net
     ∇
     
-    ∇ AssessMNIST 
+    ∇ conf ← AssessMNIST net
         ;c ;data ;img ⍝ the file contents, a line of the file and the image vector.
-        ;net ;leaky   ⍝ the neural network and the leaky parameter used.
+        ;leaky   ⍝ the leaky parameter used.
         ;label ;out ;outl ⍝ the correct output for img, the output vector of the net and the output label of the network.
-        ;hits ⍝ a pair (wrong right) with the performance of the network.
-        ⍝ Niladic tradfn to test a network on the MNSIT data set.
+        ;conf ⍝ the confusion matrix of the network guesses.
+        ⍝ Niladic tradfn to test a network on the MNIST data set.
 
         c ← ⊃⎕nget './mnistdata/mnist_test.csv' 1
-        hits ← 0 0
+        conf ← 10 10⍴0
         leaky ← 0.001
-        :For data :In c   
+        :For data :In c
+            data ← ⍎data   
             label ← 1↑data
             img ← 255÷⍨⍪1↓data
             out ← ⊃⌽ net (leaky∘LeakyReLU _ForwardPass) img
             outl ← ⊃⍸(⊢=⌈/),out
-            hits +← (outl=label)⌽1 0
+            conf[label;outl] +← 1  
         :EndFor
-        ⎕← 'Result is:'
-        ⎕← hits
+        ⎕← 'Conf matrix is:'
+        ⎕← conf
+        ⎕← 'Accuracy is:'
+        ⎕← (+/,conf)÷⍨+/(100⍴11↑1)/,conf
+    ∇
+    
+    ∇ DisplaySome net
+        ;c ;data ;img ⍝ the file contents, a line of the file and the image vector.
+        ;out ;outl ⍝ the output vector of the net and the output label of the network.
+        ;leaky ⍝ the leaky parameter.
+        ;r ;disp ⍝ the output being built and a temporary string variable.
+        c ← ⊃⎕nget './mnistdata/mnist_test.csv' 1 
+        leaky ← 0.001
+        r ← 29 0⍴' '
+        :For data :In (5?≢c) ⊃¨⊂ c
+            data ← ⍎data  
+            img ← 255÷⍨⍪1↓data
+            out ← ⊃⌽ net (leaky∘LeakyReLU _ForwardPass) img
+            outl ← ⊃⍸(⊢=⌈/),out
+            disp ← 28 28⍴' @'[img>0.5]
+            disp ← disp/⍨~∧/disp=' '
+            r ,← disp⍪(⊃⌽⍴disp)↑'guessing ',⍕outl
+        :EndFor
+        ⎕← r
     ∇
     
 :EndNamespace
