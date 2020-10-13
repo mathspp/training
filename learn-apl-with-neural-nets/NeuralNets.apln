@@ -201,11 +201,11 @@
     }
     
     ∇ net ← MNIST
-        ; c; iter ⍝ the contents of the files and the iteration counter.
-        ; net ⍝ the neural network we will build and train.
-        ; LR; leaky ⍝ the learning rate and leaky parameters.
-        ; data; img ⍝ the data vector from the file and its conversion to image vector.
-        ; t; xs; dMs; dbs ⍝ the target for this data, the actual outputs and the derivatives.                                         
+        ;c ;iter ⍝ the contents of the files and the iteration counter.
+        ;net ⍝ the neural network we will build and train.
+        ;LR ;leaky ⍝ the learning rate and leaky parameters.
+        ;data ;img ⍝ the data vector from the file and its conversion to image vector.
+        ;t ;xs ;dMs ;dbs ⍝ the target for this data, the actual outputs and the derivatives.                                         
         ⍝ Niladic tradfn to train a network on the MNIST data set.
 
         ⍝ ⎕RL←73, shape 784 10, LR ← leaky ← 0.001 gives 88.86% accuracy
@@ -234,10 +234,10 @@
     ∇
     
     ∇ AssessMNIST 
-        ; c; data; img ⍝ the file contents, a line of the file and the image vector.
-        ; net; leaky   ⍝ the neural network and the leaky parameter used.
-        ; label; out; outl ⍝ the correct output for img, the output vector of the net and the output label of the network.
-        ; hits ⍝ a pair (wrong right) with the performance of the network.
+        ;c ;data ;img ⍝ the file contents, a line of the file and the image vector.
+        ;net ;leaky   ⍝ the neural network and the leaky parameter used.
+        ;label ;out ;outl ⍝ the correct output for img, the output vector of the net and the output label of the network.
+        ;hits ⍝ a pair (wrong right) with the performance of the network.
         ⍝ Niladic tradfn to test a network on the MNSIT data set.
 
         c ← ⊃⎕nget './mnistdata/mnist_test.csv' 1
