@@ -265,7 +265,7 @@
         c ← ⊃⎕nget './mnistdata/mnist_test.csv' 1 
         leaky ← 0.001
         r ← 29 0⍴' '
-        :For data :In (5?≢c) ⊃¨⊂ c
+        :For data :In (6?≢c) ⊃¨⊂ c
             data ← ⍎data  
             img ← 255÷⍨⍪1↓data
             out ← ⊃⌽ net (leaky∘LeakyReLU _ForwardPass) img
