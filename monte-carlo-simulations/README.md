@@ -1,4 +1,4 @@
-# Monte Carlo Dice
+# Recursion with Monte Carlo Simulations
 
 ## Monte Carlo Simulations for Dice-Related Events
 
