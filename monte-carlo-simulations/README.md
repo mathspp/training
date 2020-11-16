@@ -20,7 +20,7 @@ For that matter, we abstract away the several components to create:
 
  - predicate functions, that accept a history of outcomes and determine if the condition is satisfied or not;
  - `Experiment` objects, that
-   - defines a `.trial()` method that performs a single trial and returns an outcome;
+   - define a `.trial()` method that performs a single trial and returns an outcome;
  - the `MCSimulation` object,
    - that accepts an `Experiment` object and a predicate function
    - and provides a `.estimate_average_length(runs)` method that estimates the average number of times `.trial()` has
