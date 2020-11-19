@@ -1,16 +1,17 @@
 \documentclass[11pt]{article}
 
-\usepackage[utf8]{inputenc} % For latin accented letters like ãáà
-\usepackage{verbatim}       % To type weird inputs, like commands
-\usepackage{hyperref}       % For automatic links and
-                            % clickable references to equations, sections, etc
-\usepackage{amsfonts}       % For things like \mathbb{R} and \mathcal{L}
-\usepackage{amsmath}        % For things like \implies and \iff
-\usepackage{float}          % To force LaTeX to place images/tables where we tell it to
-\usepackage{graphicx}       % Include images in the figure environment
-\usepackage{color}          % Para poderes escrever texto com outras cores
+\usepackage[utf8]{inputenc} % Para usar letras latinas acentuadas, como ãáà
+\usepackage{verbatim}       % Para usar o comando \verb e o ambiente verbatim
+\usepackage{hyperref}       % Links automáticos dentro do documento (e.g. citações, índice, ...)
+                            % e links para a internet.
+\usepackage{amsfonts}       % Tipos de letra matemáticos e comandos como \mathbb{R} e \mathcal{L}
+\usepackage{amsmath}        % Símbolos matemáticos como \implies e \iff
+\usepackage{float}          % Obrigar o LaTeX a pôr imagens/tabelas onde nós mandamos
+\usepackage{graphicx}       % Incluir imagens no ambiente figure
+\usepackage{xcolor}         % Para poderes escrever texto com outras cores
 \usepackage{subcaption}     % Para o ambiente subfigure, que dispõe imagens lado a lado
 \usepackage{listings}       % Inclusão de código
+\usepackage{soulutf8}       % Para destacar texto com acentos
 
 
 %%% Definir informações para a capa básica
@@ -483,6 +484,76 @@ com texto personalizado e \verb|\url{url}| cria links, e.g.
 \verb|\href{https://google.com}{este link vai para o Google}| vs.
 \verb|\url{https://google.com}|
 
+\paragraph{Listas}
+Usar o ambiente \texttt{itemize} e comando \texttt{item} para fazer uma lista não ordenada.
+A lista
+
+\begin{itemize}
+    \item Item 1
+    \item Item 2
+    \item Item 3
+\end{itemize}
+
+cria-se com o código
+
+\begin{verbatim}
+    \begin{itemize}
+        \item Item 1
+        \item Item 2
+        \item Item 3
+    \end{itemize}
+\end{verbatim}
+
+\paragraph{Listas dentro de listas}
+Usar um ambiente \texttt{itemize} dentro de um \texttt{item} cria outra lista.
+De facto, a lista
+
+\begin{itemize}
+    \item Item 1 \begin{itemize}
+        \item Sub 1
+        \item Sub 2
+    \end{itemize}
+    \item Item 2
+    \item Item 3 \begin{itemize}
+        \item Outro Sub 1
+        \item Outro Sub 2
+    \end{itemize}
+\end{itemize}
+
+é criada com o código
+
+\begin{verbatim}
+    \begin{itemize}
+        \item Item 1 \begin{itemize}
+            \item Sub 1
+            \item Sub 2
+        \end{itemize}
+        \item Item 2
+        \item Item 3 \begin{itemize}
+            \item Outro Sub 1
+            \item Outro Sub 2
+        \end{itemize}
+    \end{itemize}
+\end{verbatim}
+
+\paragraph{Enumerações}
+O ambiente \texttt{enumerate} é semelhante ao \texttt{itemize},
+mas serve para listas ordenadas.
+Se pegarmos no código em cima e trocarmos todos os \texttt{itemize}
+por \texttt{enumerate}, obtemos o seguinte:
+
+\begin{enumerate}
+    \item Item 1 \begin{enumerate}
+        \item Sub 1
+        \item Sub 2
+    \end{enumerate}
+    \item Item 2
+    \item Item 3 \begin{enumerate}
+        \item Outro Sub 1
+        \item Outro Sub 2
+    \end{enumerate}
+\end{enumerate}
+
 \paragraph{Tabelas}
 Ambiente \texttt{table}.
 Tal como com as imagens, podes usar \texttt{centering} e
@@ -833,6 +904,25 @@ Usa-se \verb|\backslash|.
 \listoffigures
 
 \verb|\listoftables| funciona de modo semelhante.
+
+\paragraph{Mudar a cor do texto com \texttt{textcolor}}
+O comando \verb|\textcolor{color}{text}| escreve o texto do segundo
+argumento com a cor indicada no primeiro argumento.
+A título de exemplo, \textcolor{red}{isto está a vermelho} foi escrito com
+\verb|\textcolor{red}{isto está a vermelho}|.
+
+As cores também podem ser especificadas
+\textcolor[RGB]{80,10,160}{com o código RGB} --- através do comando
+\verb|\textcolor[RGB]{80,10,160}{com o código RGB}|.
+
+\paragraph{Sublinhar texto com \texttt{underline}}
+\underline{Texto sublinhado} com \\
+\verb|\underline{Texto sublinhado}|.
+
+\paragraph{Destacar texto com o pacote \texttt{soulutf8}}
+Se incluírmos o pacote \texttt{soulutf8},
+podemos usar o comando \verb|\hl{}| para destacar texto com acentos.
+Por exemplo, \hl{isto é importante}!.
 
 \subsection{Conteúdo avançado}
 
