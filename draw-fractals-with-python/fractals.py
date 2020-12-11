@@ -50,7 +50,7 @@ def make_palette(maxiter):
 def compute_parameters(centre, width, height):
     """Compute a series of parameters from the central point, width and height."""
     left = centre.real - (width/2)
-    up = centre.imag - (height/2)
+    up = centre.imag + (height/2)
     return left, up
 
 if __name__ == "__main__":
@@ -86,17 +86,17 @@ if __name__ == "__main__":
         for _ in range(points_per_frame):
             c = complex(
                 ((c.real + dx - left) % width) + left,
-                ((c.imag + dy - up) % height) + up
+                up - ((up - c.imag - dy) % height)
             )
             i = iterate(c, maxiter)
             colour = palette[i]
-            x = int((c.real - (centre.real - width/2))/(width/WIDTH))
-            y = int((c.imag - (centre.imag - height/2))/(height/HEIGHT))
-            #screen.set_at((x, y), colour)
+            x = int(WIDTH*(c.real - left)/width)
+            y = int(HEIGHT*(up - c.imag)/height)
             try:
                 screen_array[x, y] = colour
             except Exception as e:
                 print(x, y)
+                print(left, up)
                 raise e
 
         pg.display.flip()
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             elif ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1:
                 px, py = ev.pos
                 real = left + width*px/WIDTH
-                imag = up + height*py/HEIGHT
+                imag = up - height*py/HEIGHT
                 centre = complex(real, imag)
                 width /= zoom_multiplier
                 height /= zoom_multiplier
