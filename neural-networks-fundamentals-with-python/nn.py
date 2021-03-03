@@ -18,3 +18,6 @@ class Layer:
 
         self._W = create_weight_matrix(self.outs, self.ins)
         self._b = create_bias_vector(self.outs)
+
+    def forward_pass(self, x):
+        return self.act_function(np.dot(self._W, x) + self._b)
