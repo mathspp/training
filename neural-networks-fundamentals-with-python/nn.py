@@ -12,6 +12,14 @@ def leaky_relu(x, leaky_param=0.1):
     """Leaky Rectified Linear Unit with default parameter."""
     return np.maximum(x, x*leaky_param)
 
+def d_leaky_relu(x, leaky_param=0.1):
+    """Derivative of the Leaky ReLU function."""
+    return np.maximum(x > 0, leaky_param)
+
+def mean_squared_error(values, expected):
+    """Mean squared error between two arrays."""
+    return np.mean((values - expected)**2)
+
 
 class Layer:
     """Model the connections between two sets of neurons in a network."""
@@ -28,12 +36,34 @@ class Layer:
         return self.act_function(np.dot(self._W, x) + self._b)
 
 
+class NeuralNetwork:
+    """A series of connected, compatible layers."""
+    def __init__(self, layers, loss_function):
+        self._layers = layers
+        self._loss_function = loss_function
+
+        # Check layer compatibility
+        for (from_, to_) in zip(self._layers[:-1], self._layers[1:]):
+            if from_.outs != to_.ins:
+                raise ValueError("Layers should have compatible shapes.")
+
+    def forward_pass(self, x):
+        out = x
+        for layer in self._layers:
+            out = layer.forward_pass(out)
+        return out
+
+    def loss(self, values, expected):
+        return self._loss(values, expected)
+
 if __name__ == "__main__":
-    """Demo of chaining layers with compatible shapes."""
-    l1 = Layer(2, 4, leaky_relu)
-    l2 = Layer(4, 4, leaky_relu)
-    l3 = Layer(4, 1, leaky_relu)
+    """Demo of a network as a series of layers."""
+    net = NeuralNetwork([
+        Layer(2, 4, leaky_relu),
+        Layer(4, 4, leaky_relu),
+        Layer(4, 1, leaky_relu),
+    ])
 
     x = np.random.uniform(size=(2, 1))
-    output = l3.forward_pass(l2.forward_pass(l1.forward_pass(x)))
+    output = net.forward_pass(x)
     print(output)
