@@ -20,6 +20,10 @@ def mean_squared_error(values, expected):
     """Mean squared error between two arrays."""
     return np.mean((values - expected)**2)
 
+def d_mean_squared_error(values, expected):
+    """Derivative of the mean squared error with respect to the computed values."""
+    return 2*(values - expected)/values.size
+
 
 class Layer:
     """Model the connections between two sets of neurons in a network."""
