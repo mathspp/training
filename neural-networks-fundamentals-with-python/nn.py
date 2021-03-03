@@ -68,7 +68,7 @@ class Layer:
 
     def forward_pass(self, x):
         """Compute the next set of neuron states with the given set of states."""
-        return self.act_function(np.dot(self._W, x) + self._b)
+        return self.act_function.f(np.dot(self._W, x) + self._b)
 
 
 class NeuralNetwork:
@@ -89,16 +89,18 @@ class NeuralNetwork:
         return out
 
     def loss(self, values, expected):
-        return self._loss(values, expected)
+        return self._loss_function.loss(values, expected)
 
 if __name__ == "__main__":
     """Demo of a network as a series of layers."""
     net = NeuralNetwork([
-        Layer(2, 4, leaky_relu),
-        Layer(4, 4, leaky_relu),
-        Layer(4, 1, leaky_relu),
-    ])
+        Layer(2, 4, LeakyReLU()),
+        Layer(4, 4, LeakyReLU()),
+        Layer(4, 1, LeakyReLU()),
+    ], MSELoss())
 
     x = np.random.uniform(size=(2, 1))
+    print("Input is:", x)
     output = net.forward_pass(x)
-    print(output)
+    print("Output is:", output)
+    print("Loss is:", net.loss(output, np.array(0, ndmin=2)))
