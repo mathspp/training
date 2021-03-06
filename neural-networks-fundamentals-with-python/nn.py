@@ -73,9 +73,10 @@ class Layer:
 
 class NeuralNetwork:
     """A series of connected, compatible layers."""
-    def __init__(self, layers, loss_function):
+    def __init__(self, layers, loss_function, learning_rate):
         self._layers = layers
         self._loss_function = loss_function
+        self.lr = learning_rate
 
         # Check layer compatibility
         for (from_, to_) in zip(self._layers[:-1], self._layers[1:]):
@@ -91,16 +92,47 @@ class NeuralNetwork:
     def loss(self, values, expected):
         return self._loss_function.loss(values, expected)
 
+    def train(self, x, t):
+        """Train the network on input x and expected output t."""
+
+        # Accumulate intermediate results during forward pass.
+        xs = [x]
+        for layer in self._layers:
+            xs.append(layer.forward_pass(xs[-1]))
+
+        dx = self._loss_function.dloss(xs.pop(), t)
+        for layer, x in zip(self._layers[::-1], xs[::-1]):
+            # Compute the derivatives
+            y = np.dot(layer._W, x) + layer._b
+            db = layer.act_function.df(y) * dx
+            dx = np.dot(layer._W.T, db)
+            dW = np.dot(db, x.T)
+            # Update parameters.
+            layer._W -= self.lr * dW
+            layer._b -= self.lr * db
+
+
 if __name__ == "__main__":
     """Demo of a network as a series of layers."""
+    # Silly network whose job is to return a vector of 0s no matter what.
     net = NeuralNetwork([
         Layer(2, 4, LeakyReLU()),
         Layer(4, 4, LeakyReLU()),
-        Layer(4, 1, LeakyReLU()),
-    ], MSELoss())
+        Layer(4, 3, LeakyReLU()),
+    ], MSELoss(), 0.001)
+    t = np.zeros(shape=(3,1))
 
-    x = np.random.uniform(size=(2, 1))
-    print("Input is:", x)
-    output = net.forward_pass(x)
-    print("Output is:", output)
-    print("Loss is:", net.loss(output, np.array(0, ndmin=2)))
+    loss = 0
+    for _ in range(100):
+        x = np.random.normal(size=(2,1))
+        loss += net.loss(net.forward_pass(x), t)
+    print(loss)
+
+    for _ in range(10000):
+        net.train(np.random.normal(size=(2,1)), t)
+
+    loss = 0
+    for _ in range(100):
+        x = np.random.normal(size=(2,1))
+        loss += net.loss(net.forward_pass(x), t)
+    print(loss)
