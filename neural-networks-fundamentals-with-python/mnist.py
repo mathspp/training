@@ -1,9 +1,15 @@
 from nn import ReLU, LeakyReLU, Sigmoid, CrossEntropyLoss, Layer, NeuralNetwork
+import csv
 import numpy as np
 
-def load_data(filepath, *args, **kwargs):
+def load_data(filepath, delimiter=",", dtype=float):
+    """Load a numerical numpy array from a file."""
+
     print(f"Loading {filepath}...")
-    data = np.genfromtxt(filepath, *args, **kwargs)
+    with open(filepath, "r") as f:
+        data_iterator = csv.reader(f, delimiter=delimiter)
+        data_list = list(data_iterator)
+    data = np.asarray(data_list, dtype=dtype)
     print("Done.")
     return data
 
@@ -23,7 +29,7 @@ def test(net, test_data):
         if t == guess:
             correct += 1
 
-    return correct
+    return correct/test_data.shape[0]
 
 def train(net, train_data):
     # # Precompute all target vectors.
@@ -42,20 +48,21 @@ def train(net, train_data):
         net.train(x, t)
 
 
-layers = [
-    Layer(784, 16, LeakyReLU()),
-    Layer(16, 16, LeakyReLU()),
-    Layer(16, 10, Sigmoid()),
-]
-net = NeuralNetwork(layers, CrossEntropyLoss(), 0.001)
+if __name__ == "__main__":
+    layers = [
+        Layer(784, 16, LeakyReLU()),
+        Layer(16, 16, LeakyReLU()),
+        Layer(16, 10, Sigmoid()),
+    ]
+    net = NeuralNetwork(layers, CrossEntropyLoss(), 0.001)
 
-test_data = load_data("mnistdata/mnist_test.csv", delimiter=",", dtype=int)
+    test_data = load_data("mnistdata/mnist_test.csv", delimiter=",", dtype=int)
 
-correct = test(net, test_data)
-print(f"Accuracy is {100*correct/test_data.shape[0]:.2f}%")     # Expected to be around 10%
+    accuracy = test(net, test_data)
+    print(f"Accuracy is {100*accuracy:.2f}%")     # Expected to be around 10%
 
-train_data = load_data("mnistdata/mnist_train.csv", delimiter=",", dtype=int)
-train(net, train_data)
+    train_data = load_data("mnistdata/mnist_train.csv", delimiter=",", dtype=int)
+    train(net, train_data)
 
-correct = test(net, test_data)
-print(f"Accuracy is {100*correct/test_data.shape[0]:.2f}%")
+    accuracy = test(net, test_data)
+    print(f"Accuracy is {100*accuracy:.2f}%")
