@@ -24,6 +24,26 @@ class ActivationFunction:
         """Derivative of the function with respect to its input."""
         pass
 
+class Id(ActivationFunction):
+    def f(self, x):
+        return x
+
+    def df(self, x):
+        return np.ones(x.shape)
+
+class ELU(ActivationFunction):
+    """Exponential Linear Unit."""
+    def __init__(self, alpha=0.1):
+        self.alpha = alpha
+
+    def f(self, x):
+        out = self.alpha*(np.exp(x) - 1)
+        out[x > 0] = x[x > 0]
+        return out
+
+    def df(self, x):
+        return np.maximum(x >= 0, self.alpha*(x < 0)*np.exp(x))
+
 class LeakyReLU(ActivationFunction):
     """Leaky Rectified Linear Unit."""
     def __init__(self, leaky_param=0.1):
@@ -41,15 +61,25 @@ class ReLU(LeakyReLU):
         super().__init__(0)
 
 class Sigmoid(ActivationFunction):
-    """Sigmoid activation function.
-    
-    Formula: https://mathspp.com/texpaste#0U1HhiilJrSipDs5Mz83PTKnVqNBUsFWISStKTK42rK02VNBWSI2r1q2oreVSUQEA
-    """
     def f(self, x):
         return 1/(1 + np.exp(-x))
 
     def df(self, x):
         return self.f(x) * (1 - self.f(x))
+
+class Tanh(ActivationFunction):
+    def f(self, x):
+        return np.tanh(x)
+
+    def df(self, x):
+        return 1 - self.f(x)**2
+
+class ArcTan(ActivationFunction):
+    def f(self, x):
+        return np.arctan(x)
+
+    def df(self, x):
+        return 1/(1 + x**2)
 
 
 class LossFunction:
