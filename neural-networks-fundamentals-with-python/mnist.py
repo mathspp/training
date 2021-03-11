@@ -1,4 +1,4 @@
-from nn import LeakyReLU, MSELoss, Layer, NeuralNetwork
+from nn import ReLU, LeakyReLU, Sigmoid, CrossEntropyLoss, Layer, NeuralNetwork
 import numpy as np
 
 def load_data(filepath, *args, **kwargs):
@@ -26,18 +26,18 @@ def test(net, test_data):
     return correct
 
 def train(net, train_data):
-    # Precompute all target vectors.
-    ts = {}
-    for t in range(10):
-        tv = np.zeros((10, 1))
-        tv[t] = 1
-        ts[t] = tv
+    # # Precompute all target vectors.
+    # ts = {}
+    # for t in range(10):
+    #     tv = np.zeros((10, 1))
+    #     tv[t] = 1
+    #     ts[t] = tv
 
     for i, train_row in enumerate(train_data):
         if not i%1000:
             print(i)
 
-        t = ts[train_row[0]]
+        t = train_row[0]
         x = to_col(train_row[1:])
         net.train(x, t)
 
@@ -45,9 +45,9 @@ def train(net, train_data):
 layers = [
     Layer(784, 16, LeakyReLU()),
     Layer(16, 16, LeakyReLU()),
-    Layer(16, 10, LeakyReLU()),
+    Layer(16, 10, Sigmoid()),
 ]
-net = NeuralNetwork(layers, MSELoss(), 0.001)
+net = NeuralNetwork(layers, CrossEntropyLoss(), 0.001)
 
 test_data = load_data("mnistdata/mnist_test.csv", delimiter=",", dtype=int)
 
