@@ -52,7 +52,7 @@ if __name__ == "__main__":
     layers = [
         Layer(784, 16, LeakyReLU()),
         Layer(16, 16, LeakyReLU()),
-        Layer(16, 10, Sigmoid()),
+        Layer(16, 10, LeakyReLU()),
     ]
     net = NeuralNetwork(layers, CrossEntropyLoss(), 0.001)
 

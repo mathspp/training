@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from abc import ABC, abstractmethod
 
@@ -103,12 +102,12 @@ class MSELoss(LossFunction):
         return 2*(values - expected)/values.size
 
 class CrossEntropyLoss(LossFunction):
-    def loss(self, values, expected):
-        return -values[expected, 0] + math.log(np.sum(np.exp(values)))
+    def loss(self, values, target_class):
+        return -values[target_class, 0] + np.log(np.sum(np.exp(values)))
 
-    def dloss(self, values, expected):
+    def dloss(self, values, target_class):
         d = np.exp(values)/np.sum(np.exp(values))
-        d[expected, 0] -= 1
+        d[target_class, 0] -= 1
         return d
 
 
