@@ -3,3 +3,4 @@
 session-shots/*
 */mnistdata/*
 cert_sign.py
+*.ppt?
